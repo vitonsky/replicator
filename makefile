@@ -7,4 +7,4 @@ clean:
 	rm -Rf dist build replicator_cli.egg-info venv
 
 publish: clean build
-	virtualenv venv && source venv/bin/activate && twine upload dist/*
+	virtualenv venv && source venv/bin/activate && pip install twine && twine upload dist/*
