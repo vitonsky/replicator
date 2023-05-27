@@ -1,8 +1,9 @@
 import argparse
 import sys, subprocess
 import asyncio
-import telegram
 import yaml
+
+from notifier import TelegramNotifier
 
 reportLinesLimit = 20
 
@@ -17,13 +18,15 @@ async def main():
 
     config = yaml.load(open(args.config), Loader=yaml.Loader)
 
-    # Configure bot
-    bot = None
+    # Configure notifier
+    notifier = None
     if ('notifications' in config):
-        bot = telegram.Bot(config['notifications']['telegram']['botToken'])
-        async with bot:
-            print(await bot.get_me())
+        token = config['notifications']['telegram']['botToken']
+        users = config['notifications']['telegram']['userIds']
 
+        notifier = TelegramNotifier(token, users)
+
+    # Run tasks
     for task in config['tasks']:
         taskName = task['name'] if 'name' in task else task['run']
 
@@ -56,20 +59,17 @@ async def main():
         isRunSuccessful = replicationProcess.returncode == 0
 
         # Notify result
-        if bot is not None:
+        if notifier is not None:
             notifications = config['notifications']
-            isNotificationsEnabled = 'enabled' in notifications and notifications['enabled'] == True
             notificationPrefix = '*' + notifications['prefix'] + '*: ' if 'prefix' in notifications else ''
 
-            if isNotificationsEnabled:
-                async with bot:
-                    for userId in config['notifications']['telegram']['userIds']:
-                        if isRunSuccessful:
-                            await bot.send_message(text=notificationPrefix + f'Task "{taskName}" final successful', chat_id=userId, parse_mode='MarkdownV2')
-                        else:
-                            # add last few lines to explain context
-                            lastLog= ''.join(outLines)
-                            await bot.send_message(text=notificationPrefix + f'⚠️ Task "{taskName}" are failed\n\n```\n...\n{lastLog}\n```', chat_id=userId, parse_mode='MarkdownV2')
+            escapedTaskName = notifier.escapeText(taskName)
+            if isRunSuccessful:
+                await notifier.notify(notificationPrefix + f'Task "{escapedTaskName}" final successful')
+            else:
+                # add last few lines to explain context
+                lastLog = notifier.escapeText(''.join(outLines))
+                await notifier.notify(notificationPrefix + f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
 
         # Stop the program for fails
         if not isRunSuccessful:
