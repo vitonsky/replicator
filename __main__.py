@@ -20,9 +20,11 @@ async def main():
     config = yaml.load(open(args.config), Loader=yaml.Loader)
 
     # Configure bot
-    bot = telegram.Bot(config['notifications']['telegram']['botToken'])
-    # async with bot:
-    #     print(await bot.get_me())
+    bot = None
+    if ('notifications' in config):
+        bot = telegram.Bot(config['notifications']['telegram']['botToken'])
+        async with bot:
+            print(await bot.get_me())
 
     for task in config['tasks']:
         taskName = task['name'] if 'name' in task else task['run']
@@ -56,20 +58,22 @@ async def main():
         isRunSuccessful = replicationProcess.returncode == 0
 
         # Notify result
-        notifications = config['notifications']
-        isNotificationsEnabled = 'enabled' in notifications and notifications['enabled'] == True
-        notificationPrefix = '*' + notifications['prefix'] + '*: ' if 'prefix' in notifications else ''
+        if bot is not None:
+            notifications = config['notifications']
+            isNotificationsEnabled = 'enabled' in notifications and notifications['enabled'] == True
+            notificationPrefix = '*' + notifications['prefix'] + '*: ' if 'prefix' in notifications else ''
 
-        if isNotificationsEnabled:
-            async with bot:
-                for userId in config['notifications']['telegram']['userIds']:
-                    if isRunSuccessful:
-                        await bot.send_message(text=notificationPrefix + f'Task "{taskName}" final successful', chat_id=userId, parse_mode='MarkdownV2')
-                    else:
-                        # add last few lines to explain context
-                        lastLog= ''.join(outLines)
-                        await bot.send_message(text=notificationPrefix + f'⚠️ Task "{taskName}" are failed\n\n```\n...\n{lastLog}\n```', chat_id=userId, parse_mode='MarkdownV2')
+            if isNotificationsEnabled:
+                async with bot:
+                    for userId in config['notifications']['telegram']['userIds']:
+                        if isRunSuccessful:
+                            await bot.send_message(text=notificationPrefix + f'Task "{taskName}" final successful', chat_id=userId, parse_mode='MarkdownV2')
+                        else:
+                            # add last few lines to explain context
+                            lastLog= ''.join(outLines)
+                            await bot.send_message(text=notificationPrefix + f'⚠️ Task "{taskName}" are failed\n\n```\n...\n{lastLog}\n```', chat_id=userId, parse_mode='MarkdownV2')
 
+        # Stop the program for fails
         if not isRunSuccessful:
             exit(replicationProcess.returncode)
 

@@ -4,19 +4,8 @@ To use util, first create replication YAML file.
 
 Example config on local device
 ```yml
-# Notifications config
-notifications:
-    telegram:
-        # Define should notifications been sent
-        enabled: false
-        # Token for bot who will sent notifications
-        botToken: '123:token'
-        # User IDs to receive notifications
-        userIds:
-            - 123456
-
-# Task may have name
 tasks:
+    # Task may have name
     - name: 'Copy files to disk'
       run: rclone ./backups /path/to/local/mirror1
 
