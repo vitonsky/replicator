@@ -6,7 +6,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = fh.read()
     
 setup(
-    name = 'replicator',
+    name = 'replicator-cli',
     version = '0.0.1',
     author = 'Robert Vitonsky',
     author_email = 'rob@vitonsky.net',

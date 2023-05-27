@@ -6,6 +6,9 @@ Replicator supports notifications, it's useful for tasks that take a lot of time
 
 ## Install
 
+Install from pip `pip install replicator-cli`
+
+Or build:
 - Clone repository `git clone https://github.com/vitonsky/replicator.git`
 - Build package with run `make build`
 - Install package `pip install dist/replicator-0.0.1-py3-none-any.whl`

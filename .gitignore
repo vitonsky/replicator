@@ -7,4 +7,4 @@ __pycache__
 venv
 dist
 build
-replicator.egg-info
+replicator_cli.egg-info
