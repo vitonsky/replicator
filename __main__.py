@@ -13,7 +13,7 @@ async def main():
     parser = argparse.ArgumentParser(
         description='Util to replicate backups from primary storage to a mirrors')
 
-    parser.add_argument('--config', '-c', required=True, help="Path to config file")
+    parser.add_argument('config', help="Path to config file")
 
     args = parser.parse_args()
 
