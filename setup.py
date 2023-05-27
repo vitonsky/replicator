@@ -7,7 +7,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     
 setup(
     name = 'replicator-cli',
-    version = '0.0.1',
+    version = '0.0.2',
     author = 'Robert Vitonsky',
     author_email = 'rob@vitonsky.net',
     license = 'MIT',
