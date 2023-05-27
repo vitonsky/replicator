@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from app import version
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -7,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     
 setup(
     name = 'replicator-cli',
-    version = '0.0.3',
+    version = version,
     author = 'Robert Vitonsky',
     author_email = 'rob@vitonsky.net',
     license = 'MIT',

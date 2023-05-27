@@ -5,12 +5,16 @@ import yaml
 
 from notifier import TelegramNotifier
 
+version = '0.0.4'
+
 reportLinesLimit = 20
 
 # TODO: create log file for each execution
 async def main():
     parser = argparse.ArgumentParser(
-        description='Util to replicate backups from primary storage to a mirrors')
+        description='Util to replicate backups from primary storage to a mirrors',
+    )
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s ' + version)
 
     parser.add_argument('config', help="Path to config file")
 
