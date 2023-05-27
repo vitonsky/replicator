@@ -4,8 +4,7 @@ import asyncio
 import yaml
 
 from notifier import TelegramNotifier
-
-version = '0.0.4'
+from meta import version
 
 reportLinesLimit = 20
 

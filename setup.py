@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from app import version
+from meta import version
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -16,7 +16,11 @@ setup(
     long_description = long_description,
     long_description_content_type = "text/markdown",
     url = 'https://github.com/vitonsky/replicator',
-    py_modules = ['replicator', 'app'],
+    py_modules = [
+        'app',
+        'meta',
+        'notifier',
+    ],
     packages = find_packages(),
     install_requires = [requirements],
     python_requires='>=3.7',
