@@ -1,2 +1,10 @@
-__pycache__
 cfg
+
+# Temporary files
+__pycache__
+
+# Artifacts
+venv
+dist
+build
+replicator.egg-info

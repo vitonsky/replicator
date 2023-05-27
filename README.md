@@ -1,5 +1,13 @@
 Replicate master backup to mirror targets
 
+## Install
+
+- Clone repository `git clone https://github.com/vitonsky/replicator.git`
+- Build package with run `make build`
+- Install package `pip install dist/replicator-0.0.1-py3-none-any.whl`
+
+## Usage
+
 To use util, first create replication YAML file.
 
 Example config on local device
@@ -40,5 +48,6 @@ tasks:
 ## TODO
 - [x] Support few entries for replication
 - [x] Provide commands to run, instead of paths
-- [ ] Provide instructions to install as binary
+- [x] Provide instructions to install as binary
 - [ ] Split the code
+- [ ] Add docker image
