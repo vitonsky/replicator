@@ -12,9 +12,9 @@ notifications:
             - 123456
 
 # Replication description
-replication:
-    source: 'privateS3:/backups'
-    mirrors:
+tasks:
+    - source: 'privateS3:/backups'
+      mirrors:
         - /path/to/local/mirror1
         - /path/to/local/mirror2
         - s3Mirror1:backups
@@ -22,6 +22,7 @@ replication:
 ```
 
 ## TODO
-- [ ] Support few entries for replication
+- [x] Support few entries for replication
 - [ ] Provide commands to run, instead of paths
 - [ ] Provide instructions to install as binary
+- [ ] Split the code
