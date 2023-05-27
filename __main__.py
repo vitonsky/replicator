@@ -25,47 +25,54 @@ async def main():
     #     print(await bot.get_me())
 
     for task in config['tasks']:
-        sourceStorage = task['source']
-        mirrors = task['mirrors']
+        taskName = task['name'] if 'name' in task else task['run']
 
-        for mirror in mirrors:
-            print(f"Replicate {sourceStorage} to {mirror}")
+        print(f'Run command "{taskName}"', flush=True)
 
-            # Run command
-            # TODO: add timeout to stop process
-            # TODO: provide commands
-            # cmd = ['bash', '-c', 'echo 1 && echo 2']
-            cmd = ['rclone', 'sync', '-P', '--retries-sleep', '700ms', '--max-backlog', '10', '--transfers', '4', sourceStorage, mirror]
-            replicationProcess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # Run command
+        # TODO: add timeout to stop process
+        cmd = task['run']
+        replicationProcess = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-            outLines = []
-            for rawLine in iter(replicationProcess.stdout.readline, b''):
-                line = rawLine.decode('utf-8')
+        outLines = []
+        for rawLine in iter(replicationProcess.stdout.readline, b''):
+            line = rawLine.decode('utf-8')
 
-                # Print output to console
-                sys.stdout.write(line)
+            # Print output to console
+            sys.stdout.write(line)
 
-                # Remove old lines out of limit
-                if (reportLinesLimit > 0):
-                    freeSlots = reportLinesLimit - len(outLines)
-                    if (freeSlots <= 0):
-                        slotsToRemove = -freeSlots + 1
-                        outLines = outLines[slotsToRemove:]
+            # Remove old lines out of limit
+            if (reportLinesLimit > 0):
+                freeSlots = reportLinesLimit - len(outLines)
+                if (freeSlots <= 0):
+                    slotsToRemove = -freeSlots + 1
+                    outLines = outLines[slotsToRemove:]
 
-                # Add lines
-                outLines.append(line)
-            replicationProcess.stdout.close()
-            replicationProcess.wait()
+            # Add lines
+            outLines.append(line)
+        replicationProcess.stdout.close()
+        replicationProcess.wait()
 
-            # Notify result
+        isRunSuccessful = replicationProcess.returncode == 0
+
+        # Notify result
+        notifications = config['notifications']
+        isNotificationsEnabled = 'enabled' in notifications and notifications['enabled'] == True
+        notificationPrefix = '*' + notifications['prefix'] + '*: ' if 'prefix' in notifications else ''
+
+        if isNotificationsEnabled:
             async with bot:
                 for userId in config['notifications']['telegram']['userIds']:
-                    if replicationProcess.returncode == 0:
-                        await bot.send_message(text=f'Replication to mirror "{mirror}" final successful', chat_id=userId)
+                    if isRunSuccessful:
+                        await bot.send_message(text=notificationPrefix + f'Task "{taskName}" final successful', chat_id=userId, parse_mode='MarkdownV2')
                     else:
                         # add last few lines to explain context
                         lastLog= ''.join(outLines)
-                        await bot.send_message(text=f'⚠️ Replication to mirror "{mirror}" are failed\n\n```\n...\n{lastLog}\n```', chat_id=userId, parse_mode='MarkdownV2')
+                        await bot.send_message(text=notificationPrefix + f'⚠️ Task "{taskName}" are failed\n\n```\n...\n{lastLog}\n```', chat_id=userId, parse_mode='MarkdownV2')
+
+        if not isRunSuccessful:
+            exit(replicationProcess.returncode)
+
 
 
 if __name__ == '__main__':
