@@ -1,5 +1,8 @@
 cfg
 
+# Dev files
+examples/local
+
 # Temporary files
 __pycache__
 

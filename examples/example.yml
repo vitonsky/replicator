@@ -1,0 +1,11 @@
+tasks:
+    # Task may have name
+    - name: 'Copy files to backup disk'
+      run: echo foo
+
+    - name: 'Upload to S3'
+      if: test -d notExistsDirectory
+      run: echo bar
+
+    - name: 'Replicate on server'
+      run: echo baz
