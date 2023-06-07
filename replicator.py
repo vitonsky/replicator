@@ -33,59 +33,69 @@ async def main():
     notifier.setPrefix(notifierPrefix)
 
     # Run tasks
-    for task in config['tasks']:
+    for taskId, task in enumerate(config['tasks']):
         taskName = task['name'] if 'name' in task else task['run']
         escapedTaskName = notifier.escapeText(taskName)
 
+        newLinePrefix = '\n' if taskId != 0 else ''
+        print(newLinePrefix + f'Task "{taskName}"', flush=True)
+
         # Skip by condition
         if 'if' in task:
-            ifCmd = subprocess.Popen(task['if'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            ifCmd = subprocess.Popen(task['if'], shell=True)
+            ifCmd.wait()
             if ifCmd.returncode != 0:
                 print(f'Skip task "{taskName}"', flush=True)
                 await notifier.notify(f'Skip task "{escapedTaskName}"')
                 continue
 
         # Run command
-        print(f'Run command "{taskName}"', flush=True)
-        # TODO: add timeout to stop process
-        cmd = task['run']
-        replicationProcess = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        commands = task['run'] if isinstance(task['run'], list) else [task['run']]
+        for cmdIndex, command in enumerate(commands):
+            print(f'Run command "{command}"', flush=True)
 
-        outLines = []
-        for rawLine in iter(replicationProcess.stdout.readline, b''):
-            line = rawLine.decode('utf-8')
+            # TODO: add timeout to stop process
+            replicationProcess = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-            # Print output to console
-            sys.stdout.write(line)
+            outLines = []
+            for rawLine in iter(replicationProcess.stdout.readline, b''):
+                line = rawLine.decode('utf-8')
 
-            # Remove old lines out of limit
-            if (reportLinesLimit > 0):
-                freeSlots = reportLinesLimit - len(outLines)
-                if (freeSlots <= 0):
-                    slotsToRemove = -freeSlots + 1
-                    outLines = outLines[slotsToRemove:]
+                # Print output to console
+                sys.stdout.write(line)
 
-            # Add lines
-            outLines.append(line)
-        replicationProcess.stdout.close()
-        replicationProcess.wait()
+                # Remove old lines out of limit
+                if (reportLinesLimit > 0):
+                    freeSlots = reportLinesLimit - len(outLines)
+                    if (freeSlots <= 0):
+                        slotsToRemove = -freeSlots + 1
+                        outLines = outLines[slotsToRemove:]
 
-        isRunSuccessful = replicationProcess.returncode == 0
+                # Add lines
+                outLines.append(line)
+            replicationProcess.stdout.close()
+            replicationProcess.wait()
 
-        # Notify result
-        if isRunSuccessful:
-            await notifier.notify(f'Task "{escapedTaskName}" final successful')
-        else:
-            # add last few lines to explain context
-            lastLog = notifier.escapeText(''.join(outLines))
-            await notifier.notify(f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
+            isRunSuccessful = replicationProcess.returncode == 0
 
-        # Stop the program for fails
-        if not isRunSuccessful:
-            exit(replicationProcess.returncode)
+            # Notify result
+            totalCommandsLen = len(commands)
+            messageTargetSuffix = f'- command {cmdIndex + 1}/{totalCommandsLen}' if totalCommandsLen > 1 else ''
+            messageTarget = f'Task "{escapedTaskName}"' + notifier.escapeText(messageTargetSuffix)
+
+            if isRunSuccessful:
+                await notifier.notify(f'{messageTarget} final successful')
+            else:
+                # add last few lines to explain context
+                lastLog = notifier.escapeText(''.join(outLines))
+                await notifier.notify(f'⚠️ {messageTarget} has failed\n\n```\n...\n{lastLog}\n```')
+
+            # Stop the program for fails
+            if not isRunSuccessful:
+                exit(replicationProcess.returncode)
 
     # Final
-    await notifier.notify(f'All tasks has final successful')
+    await notifier.notify(f'🎉 All tasks has final successful')
 
 
 def cli():
