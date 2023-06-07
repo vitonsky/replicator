@@ -7,8 +7,9 @@ class TelegramNotifier:
     _users = []
 
     def __init__(self, token, users):
-        self._bot = telegram.Bot(token)
-        self._users = users
+        if token is not None and users is not None:
+            self._bot = telegram.Bot(token)
+            self._users = users
 
     _prefix = None
     def setPrefix(self, prefix: str):

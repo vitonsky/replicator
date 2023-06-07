@@ -22,23 +22,27 @@ async def main():
     config = yaml.load(open(args.config), Loader=yaml.Loader)
 
     # Configure notifier
-    notifier = None
+    token = None
+    users = None
+    notifierPrefix = None
     if ('notifications' in config):
         token = config['notifications']['telegram']['botToken']
         users = config['notifications']['telegram']['userIds']
-
-        notifier = TelegramNotifier(token, users)
-        notifier.setPrefix(config['notifications'].get('prefix'))
+        notifierPrefix = config['notifications'].get('prefix')
+    notifier = TelegramNotifier(token, users)
+    notifier.setPrefix(notifierPrefix)
 
     # Run tasks
     for task in config['tasks']:
         taskName = task['name'] if 'name' in task else task['run']
+        escapedTaskName = notifier.escapeText(taskName)
 
         # Skip by condition
         if 'if' in task:
             ifCmd = subprocess.Popen(task['if'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if ifCmd.returncode != 0:
                 print(f'Skip task "{taskName}"', flush=True)
+                await notifier.notify(f'Task "{escapedTaskName}" was skipped')
                 continue
 
         # Run command
@@ -69,14 +73,12 @@ async def main():
         isRunSuccessful = replicationProcess.returncode == 0
 
         # Notify result
-        if notifier is not None:
-            escapedTaskName = notifier.escapeText(taskName)
-            if isRunSuccessful:
-                await notifier.notify(f'Task "{escapedTaskName}" final successful')
-            else:
-                # add last few lines to explain context
-                lastLog = notifier.escapeText(''.join(outLines))
-                await notifier.notify(f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
+        if isRunSuccessful:
+            await notifier.notify(f'Task "{escapedTaskName}" final successful')
+        else:
+            # add last few lines to explain context
+            lastLog = notifier.escapeText(''.join(outLines))
+            await notifier.notify(f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
 
         # Stop the program for fails
         if not isRunSuccessful:
