@@ -33,9 +33,15 @@ async def main():
     for task in config['tasks']:
         taskName = task['name'] if 'name' in task else task['run']
 
-        print(f'Run command "{taskName}"', flush=True)
+        # Skip by condition
+        if 'if' in task:
+            ifCmd = subprocess.Popen(task['if'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            if ifCmd.returncode != 0:
+                print(f'Skip task "{taskName}"', flush=True)
+                continue
 
         # Run command
+        print(f'Run command "{taskName}"', flush=True)
         # TODO: add timeout to stop process
         cmd = task['run']
         replicationProcess = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
