@@ -17,7 +17,7 @@ setup(
     long_description_content_type = "text/markdown",
     url = 'https://github.com/vitonsky/replicator',
     py_modules = [
-        'app',
+        'replicator',
         'meta',
         'notifier',
     ],

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import app
+import replicator
 
 if __name__ == '__main__':
-    app.cli()
+    replicator.cli()
