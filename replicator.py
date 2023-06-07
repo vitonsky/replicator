@@ -28,6 +28,7 @@ async def main():
         users = config['notifications']['telegram']['userIds']
 
         notifier = TelegramNotifier(token, users)
+        notifier.setPrefix(config['notifications'].get('prefix'))
 
     # Run tasks
     for task in config['tasks']:
@@ -69,16 +70,13 @@ async def main():
 
         # Notify result
         if notifier is not None:
-            notifications = config['notifications']
-            notificationPrefix = '*' + notifications['prefix'] + '*: ' if 'prefix' in notifications else ''
-
             escapedTaskName = notifier.escapeText(taskName)
             if isRunSuccessful:
-                await notifier.notify(notificationPrefix + f'Task "{escapedTaskName}" final successful')
+                await notifier.notify(f'Task "{escapedTaskName}" final successful')
             else:
                 # add last few lines to explain context
                 lastLog = notifier.escapeText(''.join(outLines))
-                await notifier.notify(notificationPrefix + f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
+                await notifier.notify(f'⚠️ Task "{escapedTaskName}" are failed\n\n```\n...\n{lastLog}\n```')
 
         # Stop the program for fails
         if not isRunSuccessful:
