@@ -30,6 +30,6 @@ setup(
     ],
     entry_points = '''
         [console_scripts]
-        replicator=app:cli
+        replicator=replicator:cli
     '''
 )
