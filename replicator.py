@@ -39,7 +39,8 @@ async def main():
 
         # Skip by condition
         if 'if' in task:
-            ifCmd = subprocess.Popen(task['if'], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            ifCmd = subprocess.Popen(task['if'], shell=True)
+            ifCmd.wait()
             if ifCmd.returncode != 0:
                 print(f'Skip task "{taskName}"', flush=True)
                 await notifier.notify(f'Skip task "{escapedTaskName}"')

@@ -4,8 +4,9 @@ tasks:
       run: echo foo
 
     - name: 'Upload to S3'
-      if: test -d notExistsDirectory
+      if: test -d notExistsDirectory && echo condition true
       run: echo bar
 
     - name: 'Replicate on server'
+      if: test -d examples && echo condition true
       run: echo baz
