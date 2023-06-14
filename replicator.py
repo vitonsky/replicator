@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys, subprocess
 import asyncio
 import yaml
@@ -8,18 +9,25 @@ from meta import version
 
 reportLinesLimit = 20
 
+taskFileName = 'Taskfile.yml'
+
 # TODO: create log file for each execution
 async def main():
     parser = argparse.ArgumentParser(
         description='Util to replicate backups from primary storage to a mirrors',
     )
     parser.add_argument('--version', '-v', action='version', version='%(prog)s ' + version)
-
-    parser.add_argument('config', help="Path to config file")
+    parser.add_argument('--config', '-c', help="Path to config file")
+    parser.add_argument('tasks', help="Task names to run", nargs="*")
 
     args = parser.parse_args()
 
-    config = yaml.load(open(args.config), Loader=yaml.Loader)
+    configFilePath = args.config if args.config is not None else os.path.join(os.getcwd(), taskFileName)
+    if os.path.exists(configFilePath) is False:
+        print(f'Not found task file by path "{configFilePath}"')
+        exit(1)
+
+    config = yaml.load(open(configFilePath), Loader=yaml.Loader)
 
     # Configure notifier
     token = None
