@@ -1,14 +1,22 @@
 tasks:
-    - name: 'Copy files to backup disk'
+  foo:
+    - name: foo
+      run: echo foo
+
+    - name: bar
+      run: echo bar
+
+  demo:
+    - name: "Copy files to backup disk"
       run:
         - echo foo 1
         - echo foo 2
         - echo foo 3
 
-    - name: 'Upload to S3'
+    - name: "Upload to S3"
       if: test -d notExistsDirectory && echo condition true
       run: echo bar
 
-    - name: 'Replicate on server'
+    - name: "Replicate on server"
       if: test -d examples && echo condition true
       run: echo baz
